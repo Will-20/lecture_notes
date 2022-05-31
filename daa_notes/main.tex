@@ -1,0 +1,759 @@
+\documentclass{article}
+\usepackage[utf8]{inputenc}
+\usepackage{amsfonts}
+\usepackage{amsmath}
+\usepackage[noend]{algpseudocode}
+
+\newcommand{\xmark}{\ding{55}}
+
+\title{Design and Analysis of Algorithms}
+\author{William Guest}
+\date{May 2022}
+
+\renewcommand\algorithmicthen{}
+\renewcommand\algorithmicdo{}
+
+\begin{document}
+
+\maketitle
+
+\section{Program Costs}
+    \textbf{Algorithm} - A finite set of well-defined instructions used to accomplish a certain task. \\
+    
+    The running time of a program depends on the:
+    \begin{enumerate}
+        \item The running time of the algorithm
+        \item The input of the program
+        \item The quality of the algorithms implementation
+        \item The underlying hardware
+    \end{enumerate}
+    For large inputs, algorithmic efficiency becomes important.
+
+\section{Asymptotic Notation}
+    \subsection{Big-O Notation}
+        Let $f,g: \mathbb{N} \to \mathbb{R}^+$ be functions. Then we can define the set
+        \[ O(g(n)) := \{ f: \mathbb{N} \to \mathbb{R}^+ : \exists n_0 \in \mathbb{N} . \exists c \in \mathbb{R}^+ . \forall n . n \geq n_0 \to f(n) \leq c \cdot g(n) \} \]
+        
+        However we use the more convenient shorthand,
+        
+        \[  f(n) = O(g(n))\]
+        
+        \[ \iff \]
+        
+        \[ \exists n_0, M \quad \forall n \geq n_0 \quad |f(n)| \leq M \cdot g(n)  \]
+        \\
+        Big-O notation is used to define upper bounds on functions.
+    \subsection{Properties of Big-O}
+        \begin{enumerate}
+            \item For every constant $c > 0$, if $f \in O(g)$ then $cf \in O(g)$
+            \item For every constant $c > 0$, if $f \in O(g)$ then $f \in O(cg)$
+            \item If $f_1 \in O(g_1)$ and $f_2 \in O(g_2)$ then $f_1 + f_2 \in O(g_1 + g_2)$
+            \item If $f_1 \in O(g_1)$ and $f_2 \in O(g_2)$ then $f_1 + f_2 \in O(\text{max}(g_1, g_2))$
+            \item If $f_1 \in O(g_1)$ and $f_2 \in O(g_2)$ then $f_1 \cdot f_2 \in O(g_1 \cdot g_2)$
+            \item If $f(n) = O(g(n))$ and $ g(n) = O(h(n))$, then $f(n) = O(h(n))$
+            \item Every polynomial of degree $l \geq 0$ is in $O(n^l)$
+            \item For any $c > 0$ in $\mathbb{R}$ we have $\text{log}(n^c) \in O(\text{log(n)})$
+            \item For every constant $c, d > 0$ in $\mathbb{R}$, we have $\text{log}^c(n) \in O(n^d)$
+            \item For every constant $c > 0$ and $d > 1$, we have $n^c \in O(d^n)$
+        \end{enumerate}
+    \subsection{Big-$\Omega$}
+        We write 
+        \[ f = \Omega(g)  \]
+        if there is a $n_0 > 0$ and a $c \in \mathbb{R}^+$ such that for all $n \geq n_0$, we have 
+        \[ f(n) \geq cg(n) \]
+        \\
+        It follows that
+        \[ f = \Omega (g) \iff g = O(f) \]
+        
+        Hence Big-$\Omega$ is a lower bound on a function.
+    \subsection{Big-$\Theta$}
+        We write $f = \Theta(g)$ to mean $f = O(g)$ and $g = O(f)$. Hence $g$ is a tight bound on $f$. Moreover, if $f = \Theta(g)$ then
+        \[ c_1 g(n) \leq f(n) \leq c_2 g(n) \]
+        for $c > 0$ and for all $n \geq n_0$
+    
+\section{Divide and Conquer}
+    \subsection{Introduction}
+        Divide and conquer algorithms involve breaking up a problem into smaller subproblems, meaning smaller instances of the same problem. We can then recursively solve these problems and then combine these answers to solve the general problem. 
+    \subsection{Master Theorem}
+        Suppose
+        \[T(n) \leq aT(\lceil n / b \rceil) + O(n^d)\]
+        Then
+        \[ 
+                T(n) = 
+                \begin{cases} 
+                    O(n^d) & d > log_b a \\
+                    O(n^d log_b n) & d = log_b a \\
+                    O(n^{log_b a}) & d < log_b a
+                \end{cases}
+            \]
+        By changing the variables of a recurrence relation, we can solve relations which do not seem to match our pattern. For example,
+        \[ T(n) = 2T(n^{1/2}) + log n \]
+        can be solved by setting $k = log n$
+        \[ T(n) = 2T(2^k) = 2T(2^{k/2}) + k\]
+        Hence 
+        \[S(k) = 2S(k/2) + k\]   
+        and so
+        \[ T(n) = O(log \: n \: log \: (log n)) \]
+    \subsection{Example Algorithms}
+        \subsubsection{Binary Search}
+            Binary search is a divide and conquer algorithm that determines whether a given integer is in a sorted array (and may return the index of this element). \\ \\
+            BINSEARCH(A, p, r, z)
+            \begin{algorithmic}
+                \If{$p \geq r$}
+                    \State{return -1}
+                \Else
+                    \State{$q = \lfloor(p + r) / 2 \rfloor$}
+                    \If{$z = A[q]$}
+                        \State{return q}
+                    \ElsIf{$z < A[q]$}
+                        \State{BINSEARCH(A, p, q, z}
+                    \Else
+                        \State{BINSEARCH(A, q + 1, r, z)}
+                    \EndIf
+                \EndIf
+            \end{algorithmic}
+            The recurrence relation for this is 
+            \[ 
+                T(n) = 
+                \begin{cases} 
+                    O(1) & n = 1\\
+                    T(\lceil n / 2 \rceil) + O(1) & \text{otherwise}
+                \end{cases}
+            \]
+            Hence by the Master Theorem, $T(n) = O(log n)$
+        \subsubsection{Selection}
+        Given an array of (unordered) numbers, how do we find the i-th largest number. One way to do it would be to sort the array and then to find the ith largest element, taking $O(n log n)$ time, but there is a better way. \\ \\
+        This algorithm uses a pivot to sort the array into three subarray, one with elements larger than the pivot, one with elements equal to the pivot and one with elements smaller than the pivot (much like quicksort). If the pivot were chosen at random, then this algorithm would have on average $O(n)$ time complexity, but worst case $O(n^2)$ time complexity. However, we can use the median of medians algorithm to get this algorithm to have $O(n)$ worst case complexity. \\ \\
+        SELECT(A, i)
+        \begin{algorithmic}[1]
+            \State{Divide the n elements of the input array into $\lfloor n/5 \rfloor$ groups of 5 each and at most one group made up of the remaining elements}
+            \State{Find the median of each of the $\lceil n / 5 \rceil$ groups by first insertion sorting each group and then picking the middle value}
+            \State{Use SELECT recursively to find the median $x$ of the $\lceil n / 5 \rceil$ medians}
+            \State{Partition the input array around the median-of-medians $x$. Let $k$ be one more than the number of elements of the low side of the partition, so $x$ is the kth smallest element and there are $n - k$ elements on the high side of the partition}
+            \State{If i = k, then return x. Otherwise use SELECT recursively to find the ith smallest element on the low side if $i < k$, or the ($i-k$)th element on the high side if $i > k$ }
+        \end{algorithmic}
+        We can find a lower bound for the number of elements bigger than the partition $x$. At least half of the medians found in step 2 are greater than x, so at least half of the $\lceil n / 5 \rceil$ elements contribute at least 3 elements greater than x. Hence the number of elements greater than x is 
+        \[ 3 \left(\lceil \frac{1}{2} \lceil \frac{n}{5} \rceil \rceil - 2 \right) \geq \frac{3n}{10} - 6\]
+        Similarly, at least $3n/10 - 6$ elements are less that x. Hence SELECT is called recursively on at most $7n / 10 + 6 elements$. Hence (for $n \geq 140$)
+        \[ T(n) \leq T(\lceil n / 5 \rceil) + T(7n / 10 + 6) + O(n) \]
+        Which we can then prove means $T(n) = O(n)$ by induction.
+        \subsubsection{Integer Multiplication}
+            We can calculate the product of two complex numbers
+            \[ (a + bi)(c + di) = ac - bd + (bc + ad)i \]
+            using the three real number multiplications $ac$, $bd$, and $(a+b)(c+d)$, as $bc + ad = (a+b)(c+d) - ac - bd$. We can use this fact to write a divide and conquer algorithm for multiplication. \\ \\
+            If we try to multiple $x$ and $y$ using a normal divide and conquer algorithm, then we split them into numbers $x = 2^{n/2} x_L + x_R$ and $y = 2^{n/2} y_L + y_R$. Then 
+            \begin{align*}
+                xy &= (2^{n/2}x_L + x_R)(2^{n/2}y_L + y_R) \\
+                   &= 2^nx_ly_l + 2^{n/2}(x_Ly_R + x_Ry_L) + x_Ry_R
+            \end{align*}
+            This can recurrence relation
+            \[ T(n) = 4T(n/2) + O(n) \]
+            meaning $T(n) = O(n^2)$. \\ \\
+            However if we use Gauss' method, then we only do three multiplications instead of four, meaning
+            \[ T(n) = 3T(n/2) + O(n) \]
+            which has runtime $T(n) = O(n^{log_2 3}) \approx O(n^{1.59})$
+
+\section{Sorting Algorithms}
+    \subsection{Insertion Sort}
+        \subsubsection{Description}
+            This algorithm takes in an input array with A[1] = $a_1$, A[2] = $a_2$, ... A[n] = $a_n$. It takes $n-1$ iterations. At the kth iteration, the first k items are in sorted order. Then,
+            \begin{itemize}
+                \item The algorithm takes A[k+1] and compares it with A[k]
+                \item If A[k+1] $\geq $ A[k], then the first k+1 elements of the array are sorted.
+                \item Otherwise A[k+1] is sorted down the array comparing it with each element until it finds an element it is larger than, or arrives at the start of the list, at which point it is inserted.
+            \end{itemize}
+        \subsubsection{Pseudocode}
+            \begin{algorithmic}[1]
+                \For{j=1 \textbf{to} A.length - 1}
+                    \State{key = A[j+1]}
+                    \State{i=j}
+                    \Comment{Insert A[j+1] into the sorted sequence A[1..j]}
+                    \While{i $>$ 0 and A[i] $>$ key}
+                        \State{A[i+1] = A[i]} \Comment{Shifts A[i] one place to the right}
+                        \State{i = i-1}
+                    \EndWhile
+                    \State{A[i+1] = key}
+                \EndFor
+            \end{algorithmic}
+        \subsubsection{Analysis}
+            In the average case insertion sort takes $O(n^2)$ comparisons and swaps, in the worst case (when list is reversed) it takes $O(n^2)$ comparisons and swaps, and in the best case (when list is in order) it takes $O(n)$ comparisons and swaps.
+    \subsection{Merge Sort}
+        \subsubsection{Description}
+            Merge sort is a divide and conquer algorithm. It works by  splitting an array into half, solving it recursively and then combining the sorted subarrays.
+        \subsubsection{Pseudocode}
+            MERGE(A,p,q,r)
+            \begin{algorithmic}[1]
+                \State{$n_1$ = q - p}
+                \State{$n_2$ = r - q}
+                \State{Create array L of size $n_1$ + 1}
+                \State{Create array R of size $n_2$ + 1}
+            
+                \For{i=1 \textbf{to} $n_1$}
+                    \State{L[i] = A[p+i-1]}
+                \EndFor
+                \For{j=1 \textbf{to} $n_2$}
+                    \State{R[j] = A[q+j-1]}
+                \EndFor
+                \State{L[$n_1$ + 1] = $\infty$}
+                \State{R[$n_2$ + 1] = $\infty$}
+                \State{i = 1}
+                \State{j = 1}
+                \For{k = p to r - 1}
+                    \If{L[i] $\leq$ R[j]}
+                        \State{A[k] = L[i]}
+                        \State{i = i + 1}
+                    \Else
+                        \State{A[k] = R[j]}
+                        \State{j = j + 1}
+                    \EndIf
+                \EndFor
+            \end{algorithmic}
+            
+            MERGE-SORT(A, p, r) \\
+            \textbf{Input}: An integer array A with indices $p < r$. \\
+            \textbf{Output}: The subarray A[p..r) in sorted non-decreasing order.
+            \begin{algorithmic}[1]
+                \If{$r > p + 1$}
+                    \State{$q = \lfloor (p + r) / 2 \rfloor$ }
+                    \State{MERGE-SORT(A, p, q)}
+                    \State{MERGE-SORT(A, q, r)}
+                    \State{MERGE(A, p, q, r}
+                \EndIf
+            \end{algorithmic}
+        \subsubsection{Analysis}
+            The first two for loops in MERGE take $\Omega(n_1 + n_2) = \Omega(n)$ time ($n = r - p$), the second for loop takes $\Omega(n)$ time, hence the time complexity for MERGE is $\Omega(n)$. MERGE-SORT therefore has a recurrence relation
+            \[ 
+                T(n) = 
+                \begin{cases} 
+                    c & n = 1 \\
+                    2T(n/2) + f(n) & n > 1 
+                \end{cases}
+            \]
+            which by the master theorem tells us that MERGE-SORT has runtime $\Omega(n)$
+            
+
+\section{Heaps}
+    \subsection{Introduction}
+        A heap is a data structure that organises data into a left complete tree, i.e. all levels are completely full except the lowest, which is filled up from the left. The height of a tree is the longest simple path from a node to a leaf. Hence a binary tree with $n$ nodes has height $\lfloor lg n \rfloor$. \\ \\
+        We can represent a heap as an array by defining
+
+        \begin{itemize}
+            \item The root is at $A[1]$
+            \item The left child of $A[i]$ is $A[2i]$
+            \item The right child of $A[i]$ is $A[2i + 1]$
+        \end{itemize}
+        
+        Any node $A[i]$ has its parent is at $A(\lfloor i/2 \rfloor)$
+    \subsection{Max-Heaps}
+        A max-heap is a heap with the property that the key of a node is less than or equal to its parent, i.e. $A[i] \leq A[\lfloor i / 2 \rfloor]$ (We can also define min-heaps in a similar way). \\ \\
+        In a max-heap, the largest element is the root. In order to build a Max-Heap, we must first define an algorithm MAX-HEAPIFY, which, assuming that the left and right subtrees of a node i are max-heaps, transforms the subtree at node i into a max-heap. This algorithm works by swapping the larger of the two children with the parent node, if the node is smaller than one of the children. \\ \\
+        MAX-HEAPIFY(A, i)
+        \begin{algorithmic}[1]
+            \State{$n = $ A.heap-size}
+            \State{l = 2i}
+            \State{r = 2i+1}
+            \If{$l \leq n$ and $A[l] > A[i]$}
+                \State{$largest = l$}
+            \Else
+                \State{$largest = i$}
+            \EndIf
+            \If{$r \leq n$ and $A[r] > A[largest]$}
+                \State{$largest = r$}
+            \EndIf
+            \If{$largest \neq i$}
+                \State{Swap A[i] and A[largest]}
+                \State{MAX-HEAPIFY($A, largest$)}
+            \EndIf
+        \end{algorithmic}
+        Once we have this algorithm, we can now define MAKE-MAX-HEAP, which takes an array of n integers and rearranges them into a max-heap. This algorithm works by calling MAX-HEAPIFY on all the nodes in reverse order, starting from the first non-leaf node. \\ \\
+        MAKE-MAX-HEAP
+        \begin{algorithmic}[1]
+            \State{A.heapsize = A.length}
+            \For{$i = \lceil \frac{n+1}{2} \rceil$ - 1 to $1$}
+                \State{MAX-HEAPIFY($A, i$)}
+            \EndFor
+        \end{algorithmic}
+        A simple bound for the runtime is $O(n log n)$, as there are $n$ invocations of $MAX-HEAPIFY$, which takes $O(log n)$. However we can produce a tighter bound by noticing that the number of node of height $h$ is upper bounded by $\frac{n}{2^h}$, and the cost of $MAX-HEAPIFY$ on a node of height $h$ is $\leq ch$, for some $c > 0$. Hence
+        \[ T(n) \leq \sum^{\lfloor lg n \rfloor}_{h = 0} \frac{n}{2^h}ch \leq cn \left( \sum^\infty_{h = 0} = 2cn \right) \]
+        Hence $T(n) = O(n)$.
+    \subsection{Heapsort}
+        We can use max-heaps to implement an in-place sorting algorithm. The basic idea is that we transform the input array into a max-heap, then keep swapping the root with the last element of the heap, then decrease the heap size. This has the effect of continually putting the largest element at the end of an array, which will form a sorted array. \\ \\
+        HEAPSORT(A)
+        \begin{algorithmic}[1]
+            \State{MAKE-MAX-HEAP(A)}
+            \For{i = A.heap-size to 2}
+                \State{Swap $A[1]$ with $A[i]$}
+                \State{A.heap-size = A.heap-size $- 1$}
+                \State{MAX-HEAPIFY($A, 1$)}
+            \EndFor
+        \end{algorithmic}
+        We can see that MAKE-MAX-HEAP takes $O(n)$, the for loop is executed $O(n)$ times and $MAX-HEAPIFY$ takes $O(log n)$, hence the runtime of the program is $O(n log n)$.
+    \subsection{Priority Queues}
+        A priority queue is an abstract data structure for maintaining a set of elements, each with an associated \textit{key} value. Max-priority queues give priority to larger keys, min-priority queues give priority to smaller keys. The operations supported by a priority queue are:
+        \begin{enumerate}
+            \item INSERT(S, x, k) inserts element $x$ with key $k$ into set S. 
+            \item MAXIMUM(S) returns the element of S with the largest key.
+            \item EXTRACT-MAX(S) removes and returns the element of S with the largest key.
+            \item INCREASE-KEY(S, x, k) increases value of $x$'s key to $k$. (Note $k$ must be at least as large as $x$'s current key value).
+        \end{enumerate}
+        Similarly a min-priority queue supports INSERT(S, x, k), MINIMUM(S), EXTRACT-MIN(S) and DECREASE-KEY(S, x, k). \\ \\
+        We can implement these four operations with a heap. \\ \\
+        HEAP-MAXIMUM(A)
+        \begin{algorithmic}[1]
+            \State{return $A[1]$}
+        \end{algorithmic}
+        This has runtime $\Omega(1)$. \\ \\
+        HEAP-EXTRACT-MAX(A)
+        \begin{algorithmic}[1]
+            \If{A.heap-size < 1}
+                \State{error "heap underflow"}
+            \EndIf
+            \State{max = A[1]}
+            \State{A[1] = A[A.heap-size - 1]}
+            \State{MAX-HEAPIFY(A, 1)}
+            \State{return max}
+        \end{algorithmic}
+        This algorithm takes the root, swaps it with the last element, decreases the heap size and calls MAX-HEAPIFY, hence it has runtime $O(log n)$. \\ \\
+        HEAP-INCREASE-KEY(A, i, key)
+        \begin{algorithmic}[1]
+            \If{key < A[i]}
+                \State{error "new key smaller than old key"}
+            \EndIf
+            \State{A[i] = key}
+            \While{$i > 1$ and A[Parent(i) < A[i]]}
+                \State{Swap A[i] with A[Parent(i)]}
+                \State{i = Parent(i)}
+            \EndWhile
+        \end{algorithmic}
+        This algorithm increases the key directly, then works back up through the tree until the parent key value is bigger than the child key value. This has runtime $O(log n)$. \\ \\
+        HEAP-INSERT(A, key)
+        \begin{algorithmic}[1]
+            \State{A.heap-size = A.heap-size + 1}
+            \State{A[A.heap-size] = $-\infty$}
+            \State{HEAP-INCREASE-KEY(A, A.heap-size, key)}
+        \end{algorithmic}
+        This algorithm inserts a new node with a key value of $-\infty$ into the tree, and then calls HEAP-INCREASE-KEY in order to get this new node into the  right place in the queue
+\section{Dynamic Programming}
+    \subsection{Introduction}
+        Dynamic programming is an optimisation technique. To solve a problem using dynamic programming, we define a sequence of subproblems ordered from smallest to largest in which the largest problem is the problem we want to solve. We also require the \textbf{optimal substructure} property, which is the property that the optimal solution of a subproblem can be constructed from the optimal solutions of smaller subproblems. Hence to solve a problem using dynamic programming, we solve its subproblems in order of smallest to largest, storing the solutions to intermediate subproblems along the way.
+    \subsection{Change-Making Problem}
+        We are given integers $1 = x_1 < x_2 < \dots < x_n$ representing the denominations of a certain currency and a target value $v$. We want to find out the minimum number of coins needed to make $v$, which we will denote as $C[v]$. \\ \\ For such a problem the optimal substructure is \[ C[u] = 1 + min \{ C[u - x_i] : 1 \leq i \leq n \land u \geq x_i \} \]
+        This is because if the minimum number of coins needed to make $u$ is $C[u]$, then it must be one more than the minimum number of coins needed to make a value \textit{one denomination lower} than $u$. Hence we can write the following algorithm \\ \\
+        CHANGE-MAKING($x_1, \dots, x_n$, $v$)
+        \begin{algorithmic}[1]
+            \State{C[0] = 0}
+            \For{u = 1 to v}
+                \State{$ C[u] = 1 + min \{ C[u - x_i] : 1 \leq i \leq n \land u \geq x_i \} $}
+            \EndFor
+            \State{return C[v]}
+        \end{algorithmic}
+        The array $C$ has length $v$ and each entry takes $O(n)$ time to compute, giving a runtime of $O(nv)$.
+    \subsection{Knapsack Problem}
+        A burglar has a knapsack with a maximum weight of $W$ kg. There are n items to pick from, each with weight $w_1, \dots, w_n \in \mathbb{N}$ and value $v_1, \dots, v_n \in \mathbb{N}$ respectively. We want to find the maximum value of items that he can take. There are two versions of this problems, either he can take one of each item, or the number he can take is unlimited. \\ \\
+        Define $K[w]$ as the maximum value reachable with a knapsack of capacity $w$. If we allow replacement (unlimited items), the optimal substructure is
+        \[ K[w] = max \{ K[w - w_i] + v_i : i \in \{1 \dots n \}, w_i \leq w \} \]
+        This is because if the solution to $K[w]$ includes item $i$, then removing this item leaves the solution for $K[w - w_i]$.
+        \begin{algorithmic}[1]
+            \State{$K[0] = 0$}
+            \For{$w = 1$ to $W$}
+                \State{$K[w] = max \{ K[w - w_i] + v_i : i \in \{1 \dots n \}, w_i \leq w \}$}
+            \EndFor
+            \State{return $K[W]$}
+        \end{algorithmic}
+        This algorithm has $W + 1$ entries in its table, with $O(n)$ time to complete them, hence the runtime is $O(nW)$. \\ \\
+        If on the other hand we don't allow replacement then we need to add a second parameter to tell if item $i$ has been used already. Hence we define $K[W,j]$ as the maximum value achievable with a knapsack of capacity $w$ choosing from $1, \dots , j$. The optimal substructure is now
+        \[ K[w, j] = max \{ K[w-w_j, j-1] + v_j, K[w, j-1]\} \]
+        This is because removing item $j$ leads to a solution for $j - 1$. Hence we only need to find out if item j is useful or not.
+        \begin{algorithmic}[1]
+            \For{$j = 0$ to $n$}
+                \State{$K[0, j] = 0$}
+            \EndFor
+            \For{$w = 0$ to $W$}
+                \State{$K[w, 0] = 0$}
+            \EndFor
+            \For{$j = 1$ to $n$}
+                \For{$j = 1$ to $W$}
+                    \If{$w_j > w$}
+                        \State{$K[w, j] = K[w, j - 1]$}
+                    \Else
+                        \State{$K[w, j] = max \{ K[w-w_j, j-1] + v_j, K[w, j-1]\}$}
+                    \EndIf
+                \EndFor
+            \EndFor
+        \end{algorithmic}
+        The algorithm takes a constant time to make an entry into a table of $W+1$ rows and $n + 1$ columns, hence its runtime is $O(nW)$
+    \subsection{Travelling Salesman Problem}
+        A salesman will conduct a journey where he attempts to visit each city exactly once, and return to the city he started in. Given distances between pairs of cities, what is the minimum distance he needs to travel? We model this problem as a complete undirected graph with vertices $1,\dots, n$ and edge lengths given by a matrix $D = (d_{i,j})$. \\ \\
+        We can brute force this solution in $\Omega (n!)$ time, but dynamic programming yields a $O(n^2 2^n)$ solution. \\ \\
+        We can split the travelling salesman problem into subproblems by considering all subsets of the vertices in the graph. For every subset $S \subset \{1, \dots, n \}$ containing the first node and for each element $j \in S$ with $j \neq 1$, we find the shortest path starting from 1, ending in j and passing through all  other nodes in S only once. We call this length $C[S,j]$. Once $|S| = n$, then we can solve the TSP by adding the start node to the end of the shortest path from 1 to j, so that it becomes a cycle, and then finding the shortest cycle. \\ \\
+        We can see that the optimal substructure is 
+        \[ C[S, j] = min \{ C[S \ \{ j \}, i] + d_{i,j} : i \in S \ \{ 1,j\} \} \]
+        This is because the length of the shortest path ending in $j$ using exactly the nodes in $S$ is the same as the shortest path ending in $i$ that uses all nodes in $S$ (except for $1$ and $j$) plus the distance from $i$ to $j$, for all such $i$. \\ \\
+        TSP(G, n)
+        \begin{algorithmic}[1]
+            \For{$k = 2$ to $n$}
+                \State{$C[\{k\},k] = d_{1,k}$}
+            \EndFor
+            \For{$s = 2$ to $n-1$}
+                \For{$S \subset \{2, \dots, n\}$, $|S| = s$}
+                    \For{$k \in S$}
+                        \State{$C[S, j] = min \{ C[S \ \{ j \}, i] + d_{i,j} : i \in S \ \{ 1,j\} \}$}
+                    \EndFor
+                \EndFor
+            \EndFor
+            \State{return $min\{C[\{1, \dots, n\}, j] + d_{j,1} : 1 < j \leq n\}$}
+        \end{algorithmic}
+        There are $2^n$ subsets of $\{1,\dots,n\}$. For each subset, there are at most $O(n)$ values for j, so the array contains $O(n 2^N)$ entries. Computing one entry takes $O(n)$, so the runtime is $O(n^2 2^n)$.
+    \subsection{Edit Distance}
+        We want to find how the minimum number of edits needed to transform one word into another. An edit is a deletion, an insertion, or a substitution. For example it takes three edits to turn WEIRD into TIRED.
+        \[ \text{WEIRD} \xrightarrow{\text{del}} \text{WIRD} \xrightarrow{\text{ins}} \text{WIRED} \xrightarrow{\text{sub}} \text{TIRED}\]
+        If we have two strings $x[1..m]$ and $y[1..n]$ then we can define the \textbf{edit distance} $E[i,j]$ as the minimum number of transformations needed to transform $x[1..i]$ into $y[1..j]$. \\ \\
+        The optimal substructure is 
+        \[ E[i, j] = min\{ E[i - 1,j], E[i, j-1] + 1, E[i-1,j-1] + \delta(i,j) \} \]
+        where $\delta(i,j) = 1$ if $x[i] \neq y[j]$ and $0$ otherwise. This is because to get from x to y, we can either delete the last character from x ($E[i - 1,j]$), insert a character at the end of y ($E[i, j-1]$), or substitute the last character for both of them ($E[i-1,j-1] + \delta(i,j)$).
+        \begin{algorithmic}[1]
+            \For{$i = 1$ to $m$}
+                \State{$E[i,0]$ = i}
+            \EndFor
+            \For{$j = 1$ to $n$}
+                \State{$E[0,j]$ = j}
+            \EndFor
+            \For{$i=1$ to $m$}
+                \For{$j = 1$ to $n$}
+                    \State{$E[i, j] = min\{ E[i - 1,j], E[i, j-1] + 1, E[i-1,j-1] + \delta(i,j) \}$}
+                \EndFor
+            \EndFor
+        \end{algorithmic}
+        It takes a constant time to fill in an entry in an array with $m$ rows and $n$ columns, so this has runtime $O(mn)$.
+    \subsection{Longest Increasing Subsequence}
+        Suppose we have a sequence $S = (a_1, \dots, A_n)$. A subsequence of S is a sequence of the form $T = (a_{i,1}, \dots, a_{i,k})$ where $1 \leq i_1 \leq \dots \leq i_k \leq n$. And increasing subsequence is one where $a_{i,1} < a_{i,2}, \dots < a_{i,k}$. Given a sequence $S = (a_1, \dots, A_n)$, we want to find the longest increasing subsequence of S. \\ \\
+        Define $L[j]$ as the length of the longest increasing subsequence ending at j. We can see that the optimal substructure is 
+        \[ L[j] = 1 + max\{L(i) : 1 \leq i < j, a_i < a_j\} \]
+        This is because the longest increasing subsequence ending at j must contain the longest increasing subsequence ending at $i$, for $i < j$ and $a_i < a_j$. \\ \\
+        We can reconstruct the subsequence by recording the penultimate entry of the longest increasing subsequence ending at j, $P[j]$. \\ \\
+        LONGEST-INCREASING-SUBSEQUENCE(A)
+        \begin{algorithmic}[1]
+            \State{$L[1] = 1$}
+            \State{$P[1] = $ NIL}
+            \State{$k = 1$} \Comment{The longest incr. subseq. ends at k}
+            \For{$j = 2$ to $n$}
+                \State{$L[j] = 1$}
+                \State{$P[j] = $ NIL}
+                \For{$i = 1$ to $j - 1$}
+                    \If{$A[i] < A[j] \land L[i] \geq L[j]$}
+                        \State{$L[j] = 1 + L[1]$}
+                        \State{$P[j] = 1$}
+                    \EndIf
+                \EndFor
+                \If{$L[j] > L[k]$}
+                    \State{$k = j$}
+                \EndIf
+            \EndFor
+        \State{Create new array B of length $L[k]$} \Comment{Write subsequence into B}
+        \For{$j = L[k]$ to $1$}
+            \State{$B[j] = A[k]$}
+            \State{$k = P[k]$}
+        \EndFor
+        \end{algorithmic}
+        There are nested for loops each executing $O(n)$ times, with a constant time inside the loops, leading to a runtime of $O(n^2)$.
+        \\ \\ There's also an improvement on this algorithm that takes $O(n \: log \: r)$, but that's just effort.
+\section{Graphs}
+    \subsection{Introduction}
+        A \textbf{directed graph} $(V, E)$ consists of a set $V$ of nodes (or vertices) and a set $E \subset V \times V$ of edges. An \textbf{edge} is an ordered pair $(u, v)$ of nodes. We then say that $u$ is the \textbf{source} of $e$, and $v$ is the \textbf{target} of $e$. We also say that $e$ is \textbf{incident} on $e$ and $v$. We can also say that $u$ and $v$ are adjacent. \\ \\
+        A \textbf{path} of length $k$ from a vertex $u$ to a vertex $u'$ is a sequence $\langle v_0, v_1, \dots, v_k \rangle$ of vertices such that $u = v_0$, $u' = v_k$ and each $(v_i,v_{i+1}) \in E$. If there is a path from $u$ to $u'$, then $u'$ is \textbf{reachable} from $u$. \\ \\
+        A path $\langle v_0, v_1, \dots, v_k \rangle$ forms a \textbf{cycle} if $v_0 = v_k$ and the path has at least one edge. A \textbf{self-loop} is a cycle of length 1. The cycle is \textbf{simple} if $v_1, \dots, v_k$ are distinct.\\ \\
+        A \textbf{directed acyclic graph} (dag) is a directed graph with no cycles. \\ \\
+        A graph $(V, E)$ is \textbf{undirected} if $E$ is symmetric, meaning $(u,v) \in E$ iff $(v, u) \in E$.
+    \subsection{Graph Representations}
+        We can represent a graph as either an \textbf{adjacency matrix} or an \textbf{adjacency list}.
+        \subsubsection{Adjacency Matrix}
+            An adjacency matrix is an $n \times n$ array whose $(i,j)$th element is 
+            \[ 
+                a_{i,j} = 
+                \begin{cases} 
+                    1 & (v_i,v_j) \in E\\
+                    0 & \text{otherwise}
+                \end{cases}
+            \]
+            We can check for an edge in constant time. This data structure has size $O(|V|^2)$. Note that for an undirected graph, this matrix is symmetric.
+        \subsubsection{Adjacency List}
+            An adjacency list consists of $|V|$ linked lists, one per vertex. The list for vertex $u$ holds the names of vertices to which $u$ has an outgoing edge. This data structure has size $O(|V| + |E|)$. For an undirected graph, $u$ is in $v$’s adjacency list iff$v$ is in $u$’s.
+    \subsection{Depth-First Search}
+        \subsubsection{Introduction}
+            Depth-first search is a linear-time algorithm that traverses both directed and undirected graphs. It takes in a graph $G = (V,E)$ and for each $v \in V$, returns a backpointer $\pi [u]$ the \textbf{predecessor} of $v$, $d[v]$, the \textbf{discovery time} of v, and $f[v]$, the \textbf{finishing time} of $v$. As DFS progresses, we also assign each node a colour:
+            \begin{itemize}
+                \item WHITE - not discovered
+                \item GREY - discovered, but not fully explored
+                \item BLACK - fully explored
+            \end{itemize}
+        \subsubsection{Pseudocode}
+            DFS(V,E)
+            \begin{algorithmic}[1]
+                \For{$u \in V$}
+                    \State{colour[$u$] = WHITE}
+                    \State{$\pi [u] = $ NIL}
+                \EndFor
+                \State{time = 0}
+                \For{$u \in V$}
+                    \If{colour[$u$] = WHITE} 
+                        \State{DFS-VISIT($u$)}
+                    \EndIf
+                \EndFor
+            \end{algorithmic}
+            DFS-VISIT(u)
+            \begin{algorithmic}[1]
+                \State{$time = time + 1$}
+                \State{$d[u] = time$}
+                \State{colour[$u$] = GREY}
+                \For{$v \in Adj[u]$}
+                    \If{colour[$v$] = WHITE}
+                        \State{$\pi [v] = u$}
+                        \State{DFS-VISIT($v$)}
+                    \EndIf
+                \EndFor
+                \State{$time = time + 1$}
+                \State{$f[u] = time$}
+                \State{colour[$u$] = BLACK}
+            \end{algorithmic}
+            Since DFS-VISIT is called only once for each vertex and for each vertex it takes time $\Theta (|Adj(v)|)$. Since $\sum_{v \in V}|Adj(v)| = |E|$, the runtime of DFS is $\Theta(|V| + |E|)$. \\ \\
+            Using DFS, we can define the \textbf{DFS forest} of a graph. This is the graph $G_\pi = (V, E_\pi)$, where $E_\pi = \{ (\pi [u],u ) : u \in V, \pi [u] \neq NIL \} $. Each tree in this forest is composed of edges $(u,v)$ such that when $(u,v)$ is explored, $u$ is GREY and $v$ is WHITE. In this case, $v$ is a descendant of $u$. Note that because DFS is not necessarily unique, neither is a graphs DFS forest.  
+        \subsubsection{Bracketing Properties}
+            The discovery and finishing times of every pair of vertices have a 'bracketing' property, i.e. (if u is discovered first) either
+            \[ d[u] < f[u] < d[v] < f[v] \; \checkmark \]
+            meaning v is not a descendant of u, or
+            \[ d[u] < d[v] < f[v] < f[u] \; \checkmark \]
+            meaning v is a descendant of u, but
+            \[ d[u] < d[v] < f[u] < f[v] \; \text{\sffamily X} \]
+            \textbf{cannot} happen. \\ \\
+        \subsubsection{Edge Classification}
+            There are four types of edges in a graph,
+            \begin{itemize}
+                \item \textbf{Tree} edges are edges of the DFS forest. If $(u,v)$ is a tree edge, then $v$ is WHITE when $(u,v)$ is explored.
+                \item \textbf{Back} edges $(u,v)$ lead from a node to an ancestor in the DFS tree. If $(u, v)$ is a back edge, then $v$ is GREY when $(u, v)$ is explored.
+                \item \textbf{Forward} edges lead from a node $u$ to a non-child descendant in the DFS tree. If $(u, v)$ is a forward edge, then v is BLACK when $(u, v)$ is explored.
+                \item \textbf{Cross} edges lead neither to a descendant nor an ancestor. Cross edges can link vertices in the same tree, or in different trees. If $(u, v)$ is a cross edge, then $v$ is BLACK when $(u, v)$ is explored.
+            \end{itemize}
+            A property of directed graphs is that they have a cycle iff its DFS has a back edge.
+    \subsection{Topological Sort}
+        We may want to represent the dependencies of a set of events as a DAG. We can use a \textbf{topological sort} to order these events with respect to these dependencies. More formally a topological sort of a DAG $G = (V,E)$ is a total ordering of vertices $< \subset V \times V$, such that if $(u,v) \in E$ then $u < v$. \\ \\
+        TOPOLOGICAL-SORT(V,E)
+        \begin{algorithmic}[1]
+            \State{Call DFS(V,E) to compute finishing times $f[v] for all v \in V$}
+            \State{Output vertices in order of \textit{decreasing} finishing times}
+        \end{algorithmic}
+        Hence $u < v$ iff $f[u] > f[v]$. Topological-sort clearly has runtime $\Omega(|V| + |E|)$.
+    \subsection{Connected Components}
+        When DFS is run on an undirected graph, the DFS trees identify the connected components trivially. For directed graphs, we must define connectivity between $v$ and $u$ as $v$ is \textbf{strongly connected} to $u$ if there is a path from $u$ to $v$ and a path from $v$ to $u$. Hence a strongly connected component for a directed graph $G = (V, E)$ is a maximal set of vertices $C \subset V$ such that for all $u,v \in C$, $u$ and $v$ are strongly connected. \\ \\
+        In order to find the strongly connected components, we need to define the transpose of a graph. The transpose of $G$ is $G^T = (V, E^T)$ where 
+        \[ E^T = \{ (u,v) : (v, u) \in E \} \]
+        We can create the transpose of $G$ in $\Omega(|V| + |E|)$ time using adjacency lists. Note that $G$ and $G^T$ have the same adjacency lists. \\ \\
+        SCC(G)
+        \begin{algorithmic}[1]
+            \State{Call DFS(G) to compute finishing times $f[u]$ for all $u$}
+            \State{Compute $G^T$}
+            \State{Call DFS($G^T$), visiting the vertices in order of decreasing $f[u]$ (as computed by the call to DFS in line 1).}
+            \State{Output the vertices in each tree of the DFS forest formed in second DFS as a separate SCC.}
+        \end{algorithmic}
+        All operations have runtime of at most $\Omega(|V| + |E|)$.
+    \subsection{Path Algorithms}
+        Consider a directed graph $G = (V, E)$ with \textbf{weight function} $w : E \to \mathbb{R}$. The weight of a path $p = \langle v_0, v_1, \dots, v_k$ is
+        \[ w(p) := \sum^k_{i=1} w(v_i-1,v_i) \]
+        The shortest path from $u$ to $v$ is the path with the lowest weight (from $u$ to $v$).
+        \subsubsection{Breadth-First Search}
+            If all weights in the path are equal to 1, then we can use breadth-first search to find all vertices reachable from a vertex $s$, along with the length of the shortest path to each vertex. \\ \\
+            BFS(V,E,s)
+            \begin{algorithmic}[1]
+                \State{$d[s] = 0$}
+                \State{$\pi [s] =$ NIL}
+                \For{$u \in V \ \{s\}$}
+                    \State{$d[u] = \infty$}
+                    \State{$\pi [u] =$ NIL}
+                \EndFor
+                \State{$Q = \emptyset$}
+                \State{ENQUEUE$(Q,s)$}
+                \While{$Q \neq \emptyset$}
+                    \State{$u = $ DEQUEUE$(Q)$}
+                    \For{$v \in Adj[u]$}
+                        \If{$d[v] = \infty$}
+                            \State{$d[v] = d[u] + 1$}
+                            \State{$\pi [v] = u$}
+                            \State{ENQUEUE$(Q,v)$}
+                        \EndIf
+                    \EndFor
+                \EndWhile
+            \end{algorithmic}
+            We enqueue and dequeue each of the $V$ nodes at most once, and we examine each edge $(u,v)$ at most once (when $u$) is dequeued, hence the runtime of this algorithm is $O(|V| + |E|)$. \\ \\
+            Just as with DFS, we can define the BFS tree of a graph as $G_\pi = (V_\pi, E_\pi)$ with $V_\pi = \{ u \in V : \pi [u] \neq NIL \} \cup \{s\}$ and $E_\pi = \{ (\pi[u], u) : u \in V_\pi\}$
+        \subsubsection{Dijkstra's Algorithm}
+            Dijkstra's algorithm solves the \textbf{single source shortest path problem} for \textbf{non-negative} weights. It uses a min-priority queue $Q$ with keys given by the shortest-path weight estimate $d[v]$. \\ \\
+            DIJKSTRA(V, E, w, s)
+            \begin{algorithmic}[1]
+                \For{$v \in V$}
+                    \State{$d[v] = \infty$}
+                    \State{$\pi[v] = NIL$}
+                \EndFor
+                \State{$d[v] = 0$}
+                \State{Q = MAKE-QUEUE(V) with $d[v] as keys$}
+                \While{$Q \neq 0$}
+                    \State{$u =$ EXTRACT-MIN(Q)}
+                    \For{$v \in Adj[u]$}
+                        \If{$d[u] + w(u,v) < d[v]$}
+                            \State{$d[v] = d[u] + w(u,v)$}
+                            \State{$\pi[v] = u$}
+                            \State{DECREASE-KEY($q, v, d[v]$)}
+                        \EndIf
+                    \EndFor
+                \EndWhile
+            \end{algorithmic}
+            MAKE-QUEUE has complexity $O(|V|)$ and is run once, EXTRACT-MIN has complexity $O(log \: |V)$ and is run $|V|$ times, and DECREASE-KEY has complexity $O(log \: |V|)$ and is run at most $|E|$ times, (as we check each edge only once). Hence the runtime of this algorithm is $O((|V| + |E|)log \: |V|)$
+        \subsubsection{Bellman-Ford Algorithm}
+            The Bellman-Ford Algorithm solves the \textbf{single source shortest path problem} for \textbf{all} weights.
+            \begin{algorithmic}[1]
+                \For{$v \in V$}
+                    \State{$d[v] = \infty$}
+                    \State{$\pi[v] = NIL$}
+                \EndFor
+                \For{$i = 1$ to $|V| - 1$}
+                    \For{$(u,v) \in E$}
+                        \If{$d[u] + w(u,v) < d[v]$}
+                            \State{$d[v] = d[u] + w(u,v)$}
+                            \State{$\pi [v] = u$}
+                        \EndIf
+                    \EndFor
+                \EndFor
+                \For{$(u,v) \in E$}
+                    \If{$d[u] + w(u,v) < d[v]$}
+                    \State{return FALSE}
+                    \EndIf
+                \EndFor
+                \State{return TRUE}
+            \end{algorithmic}
+            Because of the nested for loops, this algorithm has complexity $\Omega(|V||E|)$.
+        \subsubsection{Shortest Path in DAGs}
+            If we sort $V$ topologically, then we can see that the shortest path from $s$ to $v$ must come before $v$ in the topological sort. \\ \\
+            SHORTEST-DAG-PATH(G, s, w)
+            \begin{algorithmic}[1]
+                \State{TOPOLOGICAL-SORT($V, E$)}
+                \For{$v \in V$}
+                    \State{$d[v] = \infty$}
+                    \State{$\pi[v] = NIL$}
+                \EndFor
+                \State{$d[s] = 0$}
+                \For{$u \in V$ in topological order}
+                    \For{$v \in Adj[u]$}
+                        \If{$d[v] > d[u] + w(u,v)$}
+                            \State{$d[v] = d[u] + w(u,v)$}
+                            \State{$\pi [v] = u$}
+                        \EndIf
+                    \EndFor
+                \EndFor
+            \end{algorithmic}
+            TOPOLOGICAL-SORT takes $O(|V| + |E)$, and the inner for loop line runs in $O(|E|)$ time (as each edge is checked at most once), hence the runtime is $O(|V| + |E)$.
+        \subsubsection{Floyd-Warshall Algorithm}
+            The Floyd-Warshall solves the \textbf{all-pairs shortest paths} problem, i.e. finding the shortest path between all vertices in a graph if there are \textbf{no negative weight cycles}. Note that if the graph is sparse (meaning |E| = O(|V|)), then we can use the Bellman-Ford algorithm on each vertex for a runtime of $O(|V| \cdot |V||E|) = O(|V^3||E|)$ and that if there are no negative-weight edges, then we can use Dijkstra's algorithm on each vertex for a runtime of $O((|V| + |E|)|V|log \: |V|)$. \\ \\
+            We can use dynamic programming here. Define $d[i,j;k]$ as the length of the shortest path from i to j using the nodes from $\{1 \dots k\}$. Initially
+            \[ d[i,j;k] = 
+            \begin{cases} 
+                w(i,j) & (i,j) \in E \\
+                \infty & \text{otherwise}
+            \end{cases}
+            \]
+            with an optimal substructure of
+            \[ d[i,j;k+1] = min\{ d[i,j;k], d[i,k+1;k] + d[k+1,j;k]\} \]
+            FLOYD-WARSHALL(V, E, w)
+            \begin{algorithmic}[1]
+                \For{$i = 1$ to $|V|$}
+                    \For{$j = 1$ to $|V|$}
+                        \State{$d[i,j;k] = \infty$}
+                    \EndFor
+                \EndFor
+                \For{$(i,j) \in E$}
+                    \State{$d[i,j;k] = w(i,j)$}
+                \EndFor
+                \For{$k = 0$ to $|V| - 1$}
+                    \For{$i = 1$ to $|V|$}
+                        \For{$j = 1$ to $|V|$}
+                            \State{$d[i,j;k+1] = min\{ d[i,j;k], d[i,k+1;k] + d[k+1,j;k]\}$}
+                        \EndFor
+                    \EndFor
+                \EndFor
+            \end{algorithmic}
+            Since there are three nested for loops with a constant time taken to execute, the runtime is $O(|V|^3)$
+\section{Greedy Algorithms}
+    \subsection{Introduction}
+        Greedy algorithms (often) solve optimisation problems, they take the step that offers the greatest immediate benefit (without reconsidering this at a later step). 
+    \subsection{Minimum Spanning Trees}
+        If we are given an undirected graph $G = (V, E)$ and a weight function $E \to \mathbb{R}_{\geq 0}$, we want to find a connected subgraph connecting all the vertices of G with minimum total weight. \\ \\
+        A \textbf{spanning tree} of a graph $G = (V, E)$ is a subgraph with edge-set $T \subset E$ such that $T$ is a tree and $T$ reaches all the vertices of $G$. A spanning tree has $|V| - 1$ edges, since all connected graphs have $\geq |V| - 1$ edges, and all acyclic graphs have $\leq |V| - 1$ edges. In a spanning tree there is a unique path between each pair of nodes. \\ \\
+        A \textbf{minimum spanning tree} is a spanning tree of minimum weight, (i.e. the sum of the weights of the edges of the graph is at a minimum). It is not necessarily unique. \\ \\
+        GENERIC-MST(V, E, w)
+        \begin{algorithmic}
+            \State{$A = \emptyset$}
+            \While{A is not a spanning tree}
+                \State{Find an edge $(u,v)$ that is safe for A}
+                \State{$A = A \cup \{ (u,v) \}$}
+            \EndWhile
+            \State{return A}
+        \end{algorithmic}
+        We can define safe edges by the cut lemma. A cut is a partition of the vertex set S into $S$ and $V - S$. An edge $(u, v) \in E$ crosses a cut $(S, V - S) $ if one endpoint is in $S$ and the other in $V \ S$. A cut respects $A \in E$ if no edge in $A$ crosses the cut. An edge is a light edge crossing a cut if its weight is minimum over all edges that cross the cut. If A is a subset of some MST, then if $(S, V - S )$ is a cut that respect A, and $(u, v)$ is a light edge crossing the cut, then $(u,v)$ is safe for A.
+    \subsection{Kruskal's Algorithm}
+        Kruskal's algorithm continually picks the edge with the smallest weight and adds it to A. It checks whether an edge would introduce a cycle by using a disjoint-set data structure. It maintains a set of disjoint sets $S = \{S_1, \dots S_k\}$. This has three operations
+        \begin{itemize}
+            \item MAKE-SET(x): Makes a new set $\{ x \}$ and add it to $S$.
+            \item UNION(x, y): Removes $S_x$ and $S_y$ and adds $S_x \cup S_y$ to $S$.
+            \item FIND-SET(u): Returns the representative of the set containing u.
+        \end{itemize}
+        If m is the total number of operations, and n is the number of MAKE-SET operations, then we can do this with a linked-list in $O(m + n^2)$ time, with a weighted linked-list in $O(m + n \: log \: n)$ and with a disjoint-set forest $O(m \alpha (n))$ time, where $\alpha (n)$ is essentially a constant function.
+        \begin{algorithmic}
+            \State{$A = \emptyset$}
+            \For{$v \in V$}
+                \State{MAKE-SET(v)}
+            \EndFor
+            \State{Sort E into increasing order by weight w}
+            \For{$(u, v) \in E$}
+                \If{FIND-SET(u) $\neq$ FIND-SET(v)}
+                    \State{$A = A \cup \{ (u, v) \}$}
+                    \State{UNION($u,v$)}
+                \EndIf
+            \EndFor
+        \end{algorithmic}
+        This has runtime $O(|E|log \: |E|)$ runtime when using a disjoint-set forest.
+    \subsection{Prim's Algorithm}
+        In Prim's algorithm, we continually add the next vertex with a minimum weight to the tree. We keep a track of the edges using a priority queue, $Q$. Hence to find the light edge crossing the cut $(S, V - S)$, we use EXTRACT-MIN($Q$). We can retrieve the tree by looking at the backpointers.
+        PRIM(V, E, w, r)
+        \begin{algorithmic}[1]
+            \State{$Q = \emptyset$}
+            \For{$u \in V \ \{s\}$}
+                \State{$key[u] = \infty$}
+                \State{$\pi [u] =$ NIL}
+                \State{INSERT($Q,u$)}
+            \EndFor
+            \State{DECREASE-KEY($Q, r, 0$)}
+            \While{$Q \neq \emptyset$}
+                \State{$u = $EXTRACT-MIN($Q$)}
+                \For{$v \in Adj[u]$}
+                    \If{$v \in Q$ and $w(u,v) < key[v]$}
+                        \State{$\pi[v] = u$}
+                        \State{DECREASE-KEY($Q,v,w(u,v)$)}
+                    \EndIf
+                \EndFor
+            \EndWhile
+        \end{algorithmic}
+        The while loop takes $|V|$ EXTRACT-MIN operations and at most $|E|$ DECREASE-KEY operations. Hence the overall runtime is $O(|E|\: log |V|)$, but since $log |E| = \Omega(log|V|)$ for a connected graph, they have the same asymptotic runtime. Note also that we can use a Fibonacci heap to improve the runtime to $O(|E| + |V| log |V|)$
+    \subsection{Activity Selection}
+        There are n activities, with start and finish times $(s_i, f_i), i = 1, \dots, n$. We assume that activity $i$ takes place in the interval $ [s_i, f_i) $. Given a set of activities $(s_i, f_i), i = 1, \dots, n$, we want to select a maximum-size subset of activities that do not overlap. Note that the optimal solution always contains the minimum finishing time, which allows us to create a greedy algorithm.\\ \\
+        ACTIVITY-SELECTION(s, f)
+        \begin{algorithmic}
+            \State{Sort the activities in order of increasing f-value}
+            \State{$A = \{1\}$}
+            \State{$k = 1$}
+            \For{$j = 2$ to $n$}
+                \If{$s[j] \geq f[k]$}
+                    \State{$A = A \cup \{ j \}$}
+                    \State{$k = j$}
+                \EndIf
+            \EndFor
+            \State{return $A$}
+        \end{algorithmic}
+        The greedy algorithm takes $O(n \: log \: n)$ steps to sort the activities and $O(n)$ steps to process them. In total, it takes $O(n \: log \: n)$ steps.
+\end{document}
